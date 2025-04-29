@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   timeDiff: {
     fontSize: 8,
     color: '#977669',
-    marginLeft: 5,
+    marginLeft: 10,
   },
   resultItem: {
     marginBottom: 12,
@@ -313,7 +313,7 @@ const RecipePDF: React.FC<RecipePDFProps> = ({ recipe }) => {
                       {formatDateTime(entry.timestamp.toString())}
                       {index > 0 && entry.timeDiff > 0 && (
                         <Text style={styles.timeDiff}>
-                          (+{entry.timeDiff} minutes)
+                          {" "}(+{entry.timeDiff} minutes)
                         </Text>
                       )}
                     </Text>
