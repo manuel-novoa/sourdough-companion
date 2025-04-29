@@ -37,22 +37,49 @@ export const Timeline: React.FC<TimelineProps> = ({ entries, onAdd, onRemove, on
         {entries.map((entry, index) => (
           <div
             key={entry.id}
-            className="flex flex-col sm:flex-row sm:items-start gap-4 p-4 bg-gray-50 rounded-lg"
+            className="flex flex-col gap-4 p-4 bg-gray-50 rounded-lg"
           >
-            <div className="flex-grow">
-              <div className="relative">
-                <i className="ph-thin ph-pencil absolute left-3 top-3 text-gray-400"></i>
-                <textarea
-                  placeholder="What did you do?"
-                  value={entry.action}
-                  rows={2}
-                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-bread-500 focus:border-transparent transition-all resize-none"
-                  onChange={e => onUpdate({ ...entry, action: e.target.value })}
-                />
-              </div>
+            {/* Delete Button Container - Right aligned when in its own row */}
+            <div className="flex justify-end sm:hidden">
+              <button
+                onClick={() => onRemove(entry.id)}
+                className="p-2 text-bread-800 hover:text-bread-600 rounded-lg transition-all flex-shrink-0"
+                title="Remove entry"
+              >
+                <i className="ph-thin ph-x"></i>
+              </button>
             </div>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <div className="text-sm text-bread-800">
+
+            {/* Main Content Area - Flex column on small screens, row on larger screens */}
+            <div className="flex flex-col lg:flex-row gap-4">
+              {/* Action Row - Contains delete button and textarea */}
+              <div className="flex flex-row gap-4 flex-grow min-w-0">
+                {/* Delete Button - Only visible on larger screens */}
+                <button
+                  onClick={() => onRemove(entry.id)}
+                  className="hidden sm:block p-2 text-bread-800 hover:text-bread-600 rounded-lg transition-all flex-shrink-0"
+                  title="Remove entry"
+                >
+                  <i className="ph-thin ph-x"></i>
+                </button>
+
+                {/* Action Text Area - Takes remaining width */}
+                <div className="flex-grow min-w-0">
+                  <div className="relative">
+                    <i className="ph-thin ph-pencil absolute left-3 top-3 text-gray-400"></i>
+                    <textarea
+                      placeholder="What did you do?"
+                      value={entry.action}
+                      rows={2}
+                      className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-bread-500 focus:border-transparent transition-all resize-none"
+                      onChange={e => onUpdate({ ...entry, action: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Timestamp Display - Full width on small screens, auto width on large */}
+              <div className="flex-shrink-0 text-sm text-bread-800">
                 <div className="font-medium flex items-center gap-2">
                   <i className="ph-thin ph-clock text-bread-600"></i>
                   {formatDateTime(entry.timestamp)}
@@ -63,12 +90,6 @@ export const Timeline: React.FC<TimelineProps> = ({ entries, onAdd, onRemove, on
                   </div>
                 )}
               </div>
-              <button
-                onClick={() => onRemove(entry.id)}
-                className="p-2 text-bread-800 hover:text-bread-600 rounded-lg transition-all"
-              >
-                <i className="ph-thin ph-x"></i>
-              </button>
             </div>
           </div>
         ))}

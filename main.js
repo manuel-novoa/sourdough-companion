@@ -17,7 +17,8 @@ async function createWindow() {
 
     // In development, use the Vite dev server
     if (isDev) {
-        await win.loadURL('http://localhost:3000');
+        // Wait for dev server to be ready
+        await win.loadURL('http://localhost:5173');
         win.webContents.openDevTools();
     } else {
         // In production, load the built files
@@ -30,7 +31,30 @@ async function createWindow() {
     }
 }
 
-app.whenReady().then(() => {
+// Wait for Vite to be ready in dev mode
+async function waitForViteServer() {
+    if (isDev) {
+        const maxAttempts = 20;
+        const delayMs = 500;
+        
+        for (let i = 0; i < maxAttempts; i++) {
+            try {
+                const response = await fetch('http://localhost:5173');
+                if (response.status === 200) {
+                    console.log('Vite dev server is ready');
+                    return;
+                }
+            } catch (err) {
+                console.log('Waiting for Vite dev server...');
+                await new Promise(resolve => setTimeout(resolve, delayMs));
+            }
+        }
+        console.error('Timed out waiting for Vite dev server');
+    }
+}
+
+app.whenReady().then(async () => {
+    await waitForViteServer();
     createWindow();
 
     app.on('activate', () => {

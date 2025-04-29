@@ -36,6 +36,11 @@ Sourdough Companion is a modern web application designed to help bakers create, 
   - Export as professional PDF documents
   - Track recipe modifications
 
+- **Cross-Platform Support**:
+  - Web application for browser access
+  - Desktop application via Electron for macOS, Windows, and Linux
+  - Local file system integration for recipe storage in desktop mode
+
 ## Technology Stack
 
 - **Frontend**:
@@ -58,7 +63,63 @@ Sourdough Companion is a modern web application designed to help bakers create, 
   - Node.js
   - npm
 
-## Getting Started
+## Desktop Application
+
+Sourdough Companion is available as a desktop application powered by Electron, providing native-like features:
+
+### Desktop Features
+- Local file system integration for recipe storage
+- Native system notifications
+- Offline functionality
+- System tray integration
+- Native window management
+
+### Desktop Installation
+
+1. Download the latest release for your platform:
+   - macOS: `Sourdough-Companion.dmg`
+   - Windows: `Sourdough-Companion-Setup.exe`
+   - Linux: `sourdough-companion.AppImage`
+
+2. Install the application:
+   - macOS: Drag to Applications folder
+   - Windows: Run the installer
+   - Linux: Make the AppImage executable and run
+
+### Building Desktop Version
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Run in development mode:
+   ```bash
+   npm run dev
+   ```
+
+3. Build for production:
+   ```bash
+   # For your current platform
+   npm run dist
+
+   # For specific platforms
+   npm run dist:mac
+   npm run dist:win
+   npm run dist:linux
+   ```
+
+4. Find the packaged application in the `dist` directory
+
+### Development Notes
+
+When developing the desktop application:
+- Use `npm run dev` for hot-reload development
+- Desktop-specific code is in `main.js` and `preload.js`
+- IPC communication handles file system operations
+- Electron security best practices are implemented
+
+## Web Application
 
 ### Prerequisites
 
