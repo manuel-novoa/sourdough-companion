@@ -20,6 +20,7 @@ dist/
 dist-electron/
 build/
 public/
+release/
 
 # Temporary files
 tmp/

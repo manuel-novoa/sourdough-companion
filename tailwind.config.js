@@ -8,6 +8,8 @@ export default {
     extend: {
       fontFamily: {
         'sans': ['Inter', 'system-ui', 'sans-serif'],
+        'handwritten': ['Dokdo', 'cursive'],
+        'rustic': ['"Fredericka the Great"', 'cursive'],
       },
       colors: {
         'bread': {

@@ -6,14 +6,16 @@
   "scripts": {
     "start": "electron .",
     "dev": "concurrently \"vite --port 5173\" \"cross-env NODE_ENV=development electron .\"",
-    "build": "vite build",
+    "build": "vite build && electron-builder",
+    "build:vite": "vite build",
+    "build:electron": "electron-builder",
     "build:web": "cross-env BUILD_TARGET=web vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,html}\"",
     "test": "vitest",
-    "pack": "npm run build && electron-builder --dir",
-    "dist": "npm run build && electron-builder",
+    "pack": "npm run build:vite && electron-builder --dir",
+    "dist": "npm run build:vite && electron-builder",
     "serve": "node server.js",
     "web": "npm run build:web && npm run serve"
   },
@@ -56,18 +58,20 @@
     "appId": "com.sourdough.calculator",
     "productName": "Sourdough Companion",
     "directories": {
-      "output": "dist"
+      "output": "release"
     },
     "files": [
       "dist/**/*",
       "main.js",
-      "preload.js"
+      "preload.js",
+      "package.json"
     ],
     "mac": {
       "category": "public.app-category.lifestyle",
-      "icon": "assets/icon.icns",
+      "icon": "public/icon.icns",
       "target": [
-        "dmg"
+        "dmg",
+        "zip"
       ]
     },
     "dmg": {
@@ -83,6 +87,18 @@
           "path": "/Applications"
         }
       ]
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "public/icon.ico"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "icon": "public/icon.png"
     }
   }
 }

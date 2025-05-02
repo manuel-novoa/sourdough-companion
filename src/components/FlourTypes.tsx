@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { FlourType } from '../types';
 import { useNumberInput } from '../hooks/useNumberInput';
 
@@ -11,31 +11,28 @@ interface FlourTypesProps {
 
 const FlourInput: React.FC<{
   flour: FlourType;
-  totalPercentage: number;
   fixedTotal: number;
   onUpdate: (flour: FlourType) => void;
   onRemove: (id: number) => void;
-}> = ({ flour, totalPercentage, fixedTotal, onUpdate, onRemove }) => {
+  isLastFlour: boolean;
+}> = ({ flour, fixedTotal, onUpdate, onRemove, isLastFlour }) => {
+  // Calculate new fixed total excluding current flour
+  const remainingForFixed = useMemo(() => {
+    const available = 100 - (fixedTotal - (flour.isFixed ? flour.percentage : 0));
+    return Math.max(0, Math.min(100, available)); // Ensure value is between 0 and 100
+  }, [fixedTotal, flour.isFixed, flour.percentage]);
+
   const numberInput = useNumberInput(
     flour.percentage,
     (value) => {
       if (value === null) return;
-      
-      // Calculate new fixed total excluding current flour
-      const otherFixedTotal = fixedTotal - (flour.isFixed ? flour.percentage : 0);
-      
-      // Check if new value would exceed available percentage
-      if (flour.isFixed && value + otherFixedTotal > 100) {
-        // Don't update if it would exceed 100%
-        return;
-      }
-      
-      onUpdate({ ...flour, percentage: value });
+      const validValue = Math.max(0, Math.min(remainingForFixed, value));
+      onUpdate({ ...flour, percentage: validValue });
     },
-    { min: 0, max: 100, allowEmpty: true }
+    { min: 0, max: remainingForFixed, allowEmpty: true,}
   );
 
-  const remainingForFixed = 100 - (fixedTotal - (flour.isFixed ? flour.percentage : 0));
+  const hasError = flour.isFixed && flour.percentage + (fixedTotal - flour.percentage) > 100;
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-gray-50 rounded-lg">
@@ -47,7 +44,9 @@ const FlourInput: React.FC<{
             placeholder="Flour name"
             value={flour.name}
             className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-bread-500 focus:border-transparent transition-all"
-            onChange={e => onUpdate({ ...flour, name: e.target.value })}
+            onChange={e => onUpdate({ ...flour, name: e.target.value.trim() })}
+            aria-label="Flour name"
+            required
           />
         </div>
       </div>
@@ -60,13 +59,16 @@ const FlourInput: React.FC<{
             min="0"
             max={flour.isFixed ? remainingForFixed : 100}
             {...numberInput}
-            className={`w-full pl-4 pr-12 py-3 rounded-lg border transition-all ${
-              flour.isFixed && flour.percentage + (fixedTotal - flour.percentage) > 100
-                ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                : 'border-gray-200 focus:ring-bread-500 focus:border-transparent'
-            }`}
+            className={`w-full pl-4 pr-12 py-3 rounded-lg border transition-all ${hasError ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-200 focus:ring-bread-500 focus:border-transparent'}`}
+            aria-label="Flour percentage"
+            title={`Enter a value between 0 and ${remainingForFixed}%`}
           />
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">%</span>
+          {hasError && (
+            <p className="absolute text-xs text-red-600 mt-1">
+              Exceeds available percentage
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <label className="flex items-center gap-2 text-sm text-bread-700">
@@ -75,12 +77,16 @@ const FlourInput: React.FC<{
               checked={flour.isFixed}
               onChange={e => onUpdate({ ...flour, isFixed: e.target.checked })}
               className="rounded border-bread-300 text-bread-600 focus:ring-bread-500"
+              aria-label="Lock flour percentage"
             />
             Lock
           </label>
           <button
             onClick={() => onRemove(flour.id)}
-            className="p-2 text-bread-800 hover:text-bread-600 rounded-lg transition-all flex-shrink-0"
+            className="p-2 text-bread-800 hover:text-bread-600 rounded-lg transition-all flex-shrink-0 disabled:opacity-50"
+            disabled={isLastFlour}
+            aria-label="Remove flour"
+            title={isLastFlour ? "Cannot remove last flour" : "Remove flour"}
           >
             <i className="ph-thin ph-x"></i>
           </button>
@@ -92,11 +98,33 @@ const FlourInput: React.FC<{
 
 export const FlourTypes: React.FC<FlourTypesProps> = ({ flourTypes, onAdd, onRemove, onUpdate }) => {
   // Calculate totals
-  const totalPercentage = flourTypes.reduce((sum, flour) => sum + flour.percentage, 0);
-  const fixedFlours = flourTypes.filter(f => f.isFixed);
-  const fixedTotal = fixedFlours.reduce((sum, flour) => sum + flour.percentage, 0);
-  const remainingPercentage = 100 - totalPercentage;
-  const availableForFixed = 100 - fixedTotal;
+  const { totalPercentage, fixedTotal, remainingPercentage, availableForFixed } = useMemo(() => {
+    const total = flourTypes.reduce((sum, flour) => sum + flour.percentage, 0);
+    const fixedFlours = flourTypes.filter(f => f.isFixed);
+    const fixedSum = fixedFlours.reduce((sum, flour) => sum + flour.percentage, 0);
+    return {
+      totalPercentage: Math.round(total * 10) / 10, // Round to 1 decimal place
+      fixedTotal: fixedSum,
+      remainingPercentage: Math.max(0, 100 - total),
+      availableForFixed: Math.max(0, 100 - fixedSum)
+    };
+  }, [flourTypes]);
+
+  const canAddMore = flourTypes.length < 10; // Limit to 10 flour types
+  
+  const totalPercentageClass = totalPercentage === 100
+    ? 'hidden'
+    : totalPercentage > 100
+      ? 'text-bread-800'
+      : 'text-bread-500';
+
+  const alertClass = totalPercentage > 100
+    ? 'bg-red-50 text-red-800'
+    : 'bg-bread-50 text-bread-800';
+
+  const addButtonClass = canAddMore
+    ? 'text-bread-800 hover:text-bread-600'
+    : 'text-bread-400 cursor-not-allowed';
 
   return (
     <div className="mb-8">
@@ -108,52 +136,36 @@ export const FlourTypes: React.FC<FlourTypesProps> = ({ flourTypes, onAdd, onRem
           </p>
         </div>
         <div className="text-right">
-          <div className={`text-sm font-medium ${
-            totalPercentage === 100 
-              ? 'text-green-600' 
-              : totalPercentage > 100 
-                ? 'text-red-600'
-                : 'text-bread-600'
-          }`}>
+          <div className={`text-sm font-bold ${totalPercentageClass}`} role="status" aria-live="polite">
             Total: {totalPercentage}%
           </div>
-          {fixedFlours.length > 0 && (
-            <div className="text-sm text-bread-600 mt-1">
-              Locked: {fixedTotal}% (Available: {availableForFixed}%)
-            </div>
-          )}
         </div>
       </div>
 
       <div className="space-y-4">
-        {flourTypes.map(flour => (
+        {flourTypes.map((flour, index) => (
           <FlourInput
             key={flour.id}
             flour={flour}
-            totalPercentage={totalPercentage}
             fixedTotal={fixedTotal}
             onUpdate={onUpdate}
             onRemove={onRemove}
+            isLastFlour={flourTypes.length === 1}
           />
         ))}
       </div>
 
       {totalPercentage !== 100 && (
-        <div className={`mt-4 p-3 rounded-lg text-sm ${
-          totalPercentage > 100
-            ? 'bg-red-50 text-red-800'
-            : 'bg-bread-50 text-bread-800'
-        }`}>
-          {totalPercentage > 100 
+        <div className={`mt-4 p-3 rounded-lg text-sm ${alertClass}`} role="alert">
+          {totalPercentage > 100
             ? 'The total percentage exceeds 100%. Please adjust the values.'
             : `The total percentage should be 100%. You need to add ${remainingPercentage}% more.`
           }
-          {fixedFlours.length > 0 && totalPercentage < 100 && (
+          {flourTypes.some(f => f.isFixed) && totalPercentage < 100 && (
             <div className="mt-2">
-              {availableForFixed < remainingPercentage 
+              {availableForFixed < remainingPercentage
                 ? 'Warning: Locked percentages don\'t leave enough room for the remaining needed percentage.'
-                : `Non-locked flours will be automatically adjusted to reach 100%.`
-              }
+                : 'Non-locked flours will be automatically adjusted to reach 100%.'}
             </div>
           )}
         </div>
@@ -161,10 +173,13 @@ export const FlourTypes: React.FC<FlourTypesProps> = ({ flourTypes, onAdd, onRem
 
       <button
         onClick={onAdd}
-        className="mt-6 px-6 py-2 text-bread-800 rounded-lg hover:text-bread-600 transition-all flex items-center gap-2"
+        className={`mt-6 px-6 py-2 rounded-lg transition-all flex items-center gap-2 ${addButtonClass}`}
+        disabled={!canAddMore}
+        aria-label={canAddMore ? "Add flour type" : "Maximum flour types reached"}
       >
         <i className="ph-thin ph-plus"></i>
         Add Flour Type
+        {!canAddMore && <span className="text-xs ml-2">(Max 10)</span>}
       </button>
     </div>
   );

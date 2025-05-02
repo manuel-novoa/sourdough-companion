@@ -58,9 +58,11 @@ export const useNumberInput = (
     if (!isNaN(numValue)) {
       // Check min/max constraints
       if (options.min !== undefined && numValue < options.min) {
+        onChange(options.min);
         return;
       }
       if (options.max !== undefined && numValue > options.max) {
+        onChange(options.max);
         return;
       }
       

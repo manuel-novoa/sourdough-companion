@@ -29,8 +29,7 @@ export const formatTimeDiff = (minutes: number): string => {
 
 // Helper function to create a Date object in local timezone
 export const createLocalDate = (): Date => {
-  const now = new Date();
-  return new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
+  return new Date();
 };
 
 export const calculateRecipeAmounts = ({

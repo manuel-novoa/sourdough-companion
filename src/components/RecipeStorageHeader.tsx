@@ -206,15 +206,6 @@ const RecipeStorageHeader: React.FC = () => {
               <i className="ph-thin ph-floppy-disk text-2xl"></i>
             </button>
           )}
-          
-          <button
-            onClick={() => setShowSaveDialog(true)}
-            className="text-bread-600 hover:text-bread-800 transition-colors"
-            title="Save As New"
-          >
-            <i className="ph-thin ph-floppy-disk-plus text-2xl"></i>
-          </button>
-
           {state.currentRecipe && (
             <button
               onClick={generatePDF}

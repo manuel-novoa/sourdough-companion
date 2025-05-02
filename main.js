@@ -1,7 +1,15 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const http = require('http');
 const isDev = process.env.NODE_ENV === 'development';
+
+function resolveHtmlPath() {
+    if (isDev) {
+        return 'http://localhost:5173';
+    }
+    return path.join(__dirname, 'dist', 'index.html');
+}
 
 async function createWindow() {
     const win = new BrowserWindow({
@@ -12,57 +20,79 @@ async function createWindow() {
             contextIsolation: true,
             preload: path.join(__dirname, 'preload.js')
         },
-        icon: path.join(__dirname, 'public/icon.png')
+        icon: path.join(__dirname, isDev ? 'public' : 'dist', 'icon.png')
     });
 
-    // In development, use the Vite dev server
     if (isDev) {
         // Wait for dev server to be ready
-        await win.loadURL('http://localhost:5173');
+        await waitForViteServer();
+        await win.loadURL(resolveHtmlPath());
         win.webContents.openDevTools();
     } else {
         // In production, load the built files
-        win.loadFile(path.join(__dirname, 'dist', 'index.html'));
+        win.loadFile(resolveHtmlPath());
     }
 
     // Set dock icon for macOS
     if (process.platform === 'darwin') {
-        app.dock.setIcon(path.join(__dirname, 'public/icon.png'));
+        app.dock.setIcon(path.join(__dirname, isDev ? 'public' : 'dist', 'icon.png'));
     }
-}
 
-// Wait for Vite to be ready in dev mode
-async function waitForViteServer() {
-    if (isDev) {
-        const maxAttempts = 20;
-        const delayMs = 500;
-        
-        for (let i = 0; i < maxAttempts; i++) {
-            try {
-                const response = await fetch('http://localhost:5173');
-                if (response.status === 200) {
-                    console.log('Vite dev server is ready');
-                    return;
-                }
-            } catch (err) {
-                console.log('Waiting for Vite dev server...');
-                await new Promise(resolve => setTimeout(resolve, delayMs));
-            }
+    // Handle external links
+    win.webContents.setWindowOpenHandler(({ url }) => {
+        if (url.startsWith('http:') || url.startsWith('https:')) {
+            require('electron').shell.openExternal(url);
         }
-        console.error('Timed out waiting for Vite dev server');
-    }
+        return { action: 'deny' };
+    });
 }
 
-app.whenReady().then(async () => {
-    await waitForViteServer();
-    createWindow();
+function waitForViteServer() {
+    if (!isDev) return Promise.resolve();
 
-    app.on('activate', () => {
+    return new Promise((resolve, reject) => {
+        const maxAttempts = 20;
+        let attempts = 0;
+        
+        const checkServer = () => {
+            attempts++;
+            const req = http.get('http://localhost:5173', (res) => {
+                if (res.statusCode === 200) {
+                    console.log('Vite dev server is ready');
+                    resolve();
+                } else {
+                    tryAgain();
+                }
+            });
+            
+            req.on('error', () => {
+                tryAgain();
+            });
+        };
+        
+        const tryAgain = () => {
+            if (attempts >= maxAttempts) {
+                reject(new Error('Timed out waiting for Vite dev server'));
+                return;
+            }
+            console.log('Waiting for Vite dev server...');
+            setTimeout(checkServer, 500);
+        };
+        
+        checkServer();
+    });
+}
+
+// Handle app lifecycle
+app.whenReady().then(async () => {
+    await createWindow();
+
+    app.on('activate', async () => {
         if (BrowserWindow.getAllWindows().length === 0) {
-            createWindow();
+            await createWindow();
         }
     });
-});
+}).catch(console.error);
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
