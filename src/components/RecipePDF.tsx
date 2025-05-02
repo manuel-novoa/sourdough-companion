@@ -1,7 +1,8 @@
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
+import { Document, Page, Text, View, Font, Link } from '@react-pdf/renderer';
 import { Recipe } from '../types';
 import { Bread, ClipboardText, Book, Clock, Package } from '../assets/pdf-icons/Icons';
+import { styles, BackgroundPattern } from './RecipePDFStyles';
 
 // Register a custom font for the PDF
 Font.registerHyphenationCallback(word => [word]);
@@ -20,162 +21,6 @@ Font.register({
       fontWeight: 'medium'
     }
   ]
-});
-
-const styles = StyleSheet.create({
-  page: {
-    flexDirection: 'column',
-    backgroundColor: '#FFFFFF',
-    padding: 40,
-    fontFamily: 'Inter',
-  },
-  section: {
-    marginBottom: 30,
-    breakInside: 'avoid',
-  },
-  headerBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 30,
-    paddingBottom: 20,
-    borderBottom: '2 solid #F2E8E5',
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    flex: 1,
-    paddingRight: 50,
-    minHeight: 80,
-  },
-  headerRight: {
-    flex: 1,
-    backgroundColor: '#F9F5F3',
-    padding: 15,
-    borderRadius: 4,
-  },
-
-  title: {
-    fontSize: 20,
-    color: '#846358',
-    fontWeight: 'bold',
-    paddingLeft: 10,
-  },
-  infoText: {
-    fontSize: 10,
-    color: '#846358',
-    marginBottom: 5,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 15,
-    paddingBottom: 10,
-  },
-
-  sectionTitle: {
-    fontSize: 14,
-    color: '#846358',
-    fontWeight: 'bold',
-    paddingLeft: 10,
-  },
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  gridItem: {
-    width: '50%',
-    paddingRight: 20,
-    marginBottom: 15,
-  },
-  label: {
-    fontSize: 10,
-    color: '#977669',
-    marginBottom: 2,
-  },
-  value: {
-    fontSize: 14,
-    color: '#43302b',
-    fontWeight: 'medium',
-  },
-  subValue: {
-    fontSize: 10,
-    color: '#977669',
-    marginTop: 2,
-  },
-  journal: {
-    backgroundColor: '#FFFBF9',
-    padding: 15,
-    borderRadius: 4,
-    borderLeft: '3 solid #F2E8E5',
-    breakInside: 'avoid',
-  },
-  journalEntry: {
-    marginBottom: 15,
-    paddingBottom: 10,
-    borderBottom: '0.5 dashed #F2E8E5',
-  },
-  journalTime: {
-    fontSize: 9,
-    paddingLeft: 5,
-    color: '#977669',
-    fontWeight: 'medium',
-  },
-  journalAction: {
-    fontSize: 11,
-    paddingTop: 10,
-    color: '#43302b',
-    lineHeight: 1.4,
-  },
-  timeDiff: {
-    fontSize: 8,
-    color: '#977669',
-    marginLeft: 10,
-  },
-  resultItem: {
-    marginBottom: 12,
-    padding: 10,
-    backgroundColor: '#FFFBF9',
-    borderRadius: 4,
-    breakInside: 'avoid',
-  },
-  resultLabel: {
-    fontSize: 10,
-    color: '#846358',
-    marginBottom: 4,
-    fontWeight: 'medium',
-  },
-  resultValue: {
-    fontSize: 11,
-    color: '#43302b',
-    lineHeight: 1.4,
-  },
-  ingredientItem: {
-    width: '33.33%',
-    paddingRight: 15,
-    marginBottom: 12,
-  },
-  ingredientValue: {
-    fontSize: 12,
-    color: '#43302b',
-    marginBottom: 2,
-  },
-  ingredientWeight: {
-    fontSize: 10,
-    color: '#977669',
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 40,
-    left: 40,
-    right: 40,
-    fontSize: 8,
-    color: '#977669',
-    textAlign: 'center',
-    paddingTop: 10,
-    borderTop: '1 solid #F2E8E5',
-  },
 });
 
 interface RecipePDFProps {
@@ -218,10 +63,10 @@ const RecipePDF: React.FC<RecipePDFProps> = ({ recipe }) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        <BackgroundPattern />
         {/* Header */}
         <View style={styles.headerBar}>
           <View style={styles.headerLeft}>
-            <Bread />
             <Text style={styles.title}>{metadata.recipeName || 'Sourdough Recipe'}</Text>
           </View>
           <View style={styles.headerRight}>
@@ -370,7 +215,7 @@ const RecipePDF: React.FC<RecipePDFProps> = ({ recipe }) => {
 
         {/* Footer */}
         <Text style={styles.footer}>
-          Created with Sourdough Companion • {formatDateTime(metadata.lastUpdated)}
+          Created with <Link src="https://sourdough-companion.web.app/" style={styles.footerLink}>Sourdough Companion</Link> • {formatDateTime(metadata.lastUpdated)}
         </Text>
       </Page>
     </Document>

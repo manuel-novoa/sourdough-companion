@@ -149,7 +149,7 @@ export const FlourTypes: React.FC<FlourTypesProps> = ({ flourTypes, onAdd, onRem
         </div>
         <div className="text-right">
           <div className={`text-sm font-bold ${totalPercentageClass}`} role="status" aria-live="polite">
-            Total: {totalPercentage}%
+            {remainingPercentage}% of flour pending to allocate
           </div>
         </div>
       </div>

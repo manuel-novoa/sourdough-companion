@@ -50,13 +50,13 @@ export const RecipeSettings: React.FC<RecipeSettingsProps> = ({
   const weightPerDoughballInput = useNumberInput(
     weightPerDoughball,
     value => onSettingsChange('weightPerDoughball', value ?? 500),
-    { min: 500, defaultValue: 500 }
+    { min: 1, defaultValue: 500 }
   );
 
   const hydrationInput = useNumberInput(
     hydration,
-    value => onSettingsChange('hydration', value ?? 65),
-    { min: 65, max: 85, defaultValue: 65 }
+    value => onSettingsChange('hydration', value ?? 70),
+    { min: 1, defaultValue: 70 }
   );
 
   const saltPercentageInput = useNumberInput(
@@ -67,8 +67,8 @@ export const RecipeSettings: React.FC<RecipeSettingsProps> = ({
 
   const starterPercentageInput = useNumberInput(
     starterPercentage,
-    value => onSettingsChange('starterPercentage', value ?? 10),
-    { min: 10, max: 40, defaultValue: 10 }
+    value => onSettingsChange('starterPercentage', value ?? 20),
+    { min: 1, defaultValue: 20 }
   );
 
   return (
