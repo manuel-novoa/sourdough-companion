@@ -29,10 +29,21 @@ const FlourInput: React.FC<{
       const validValue = Math.max(0, Math.min(remainingForFixed, value));
       onUpdate({ ...flour, percentage: validValue });
     },
-    { min: 0, max: remainingForFixed, allowEmpty: true,}
+    { min: 0, max: remainingForFixed, allowEmpty: true }
   );
 
   const hasError = flour.isFixed && flour.percentage + (fixedTotal - flour.percentage) > 100;
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onUpdate({ ...flour, name: e.target.value });
+  };
+
+  const handleNameBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const trimmedValue = e.target.value.trim();
+    if (trimmedValue !== e.target.value) {
+      onUpdate({ ...flour, name: trimmedValue });
+    }
+  };
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-gray-50 rounded-lg">
@@ -44,7 +55,8 @@ const FlourInput: React.FC<{
             placeholder="Flour name"
             value={flour.name}
             className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-bread-500 focus:border-transparent transition-all"
-            onChange={e => onUpdate({ ...flour, name: e.target.value.trim() })}
+            onChange={handleNameChange}
+            onBlur={handleNameBlur}
             aria-label="Flour name"
             required
           />
